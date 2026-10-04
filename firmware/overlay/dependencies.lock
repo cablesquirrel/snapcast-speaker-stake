@@ -1,0 +1,32 @@
+dependencies:
+  espressif/esp-dsp:
+    component_hash: ed9ac175b14e0414399a2b33c525579414b5bad19a2a67b12ea212def96f9a98
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=4.2'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 1.8.2
+  espressif/mdns:
+    component_hash: 3ba256ac95e07c274be53cbd73f06cb846c403b61e8fbdf1be57bdb79db7a63e
+    dependencies:
+    - name: idf
+      require: private
+      version: '>=5.0'
+    source:
+      registry_url: https://components.espressif.com/
+      type: service
+    version: 1.12.0
+  idf:
+    source:
+      type: idf
+    version: 5.5.1
+direct_dependencies:
+- espressif/esp-dsp
+- espressif/mdns
+- idf
+manifest_hash: f8e9f8bb05237d075a4c7626a95204e1ae79b58894b56b399ef63a4219a4c873
+target: esp32s3
+version: 2.0.0

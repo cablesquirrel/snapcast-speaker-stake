@@ -1,7 +1,7 @@
 # Prepare firmware/snapclient for building:
 #   1. Initialize the upstream submodule (and its nested submodules) at the pinned commit.
 #   2. Apply firmware/patches/upstream-changes.patch, unless it is already applied.
-#   3. Copy the overlay files (status_led component, speaker-stake sdkconfigs) into the submodule.
+#   3. Copy the overlay files (status_led component, speaker-stake sdkconfigs, dependencies.lock) into the submodule.
 # Safe to run more than once.
 
 $ErrorActionPreference = "Continue"
@@ -29,4 +29,5 @@ if ($LASTEXITCODE -eq 0) {
 
 Copy-Item -Recurse -Force (Join-Path $overlay "components\status_led") (Join-Path $fw "components\")
 Copy-Item -Force (Join-Path $overlay "sdkconfig.*") $fw
+Copy-Item -Force (Join-Path $overlay "dependencies.lock") $fw
 Write-Output "Overlay copied. Firmware is ready in firmware\snapclient."

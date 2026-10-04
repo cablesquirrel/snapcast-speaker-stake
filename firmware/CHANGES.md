@@ -63,6 +63,7 @@ These files do not exist upstream. `scripts/setup-firmware.ps1` copies them into
 - `overlay/components/status_led/` (CMakeLists.txt, Kconfig.projbuild, include/status_led.h, status_led.c): single-LED state indicator for the XIAO's onboard LED on GPIO21. States: connecting (fast blink), waiting (slow blink), ready (solid).
 - `overlay/sdkconfig.max98357_combo`: full build config for the XIAO + MAX98357A (3 W) flavor. Uses `CONFIG_DAC_MAX98357=y`, `CONFIG_MAX98357_MUTE_PIN=7`, PSRAM octal, Improv WiFi provisioning, and the status LED on GPIO21.
 - `overlay/sdkconfig.pcm5102a_ch05d`: full build config for the XIAO + GY-PCM5102A + CH05D (5 W) flavor. Identical to the above except `CONFIG_DAC_PCM5102A=y` and `CONFIG_PCM5102A_MUTE_PIN=7`.
+- `overlay/dependencies.lock`: pins the managed component versions (esp-dsp, mdns, ...) the firmware was built and tested with. Upstream gitignores this file, so without it fresh clones resolve newer, unpinned versions and produce different binaries.
 
 Build each flavor into its own directory (from `firmware/snapclient`):
 ```
