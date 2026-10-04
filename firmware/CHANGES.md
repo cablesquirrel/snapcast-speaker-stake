@@ -2,11 +2,14 @@
 
 Upstream: https://github.com/CarlosDerSeher/snapclient at commit `5cda3a7` (branch `develop`, merge commit "Merge branch 'develop'").
 
-Everything listed here is also in `patches/upstream-changes.patch`, which applies cleanly to a pristine checkout of that commit:
+The upstream source is pulled in as the submodule `firmware/snapclient`, pinned to `5cda3a7`. The changes below are in `patches/upstream-changes.patch`, which modifies only four existing upstream files. New files are kept separately in `overlay/` and copied in by `scripts/setup-firmware.ps1`.
+
+Setup is covered in the root README. In short:
 
 ```
-git archive 5cda3a7 | tar -x -C snapclient-upstream
-cd snapclient-upstream && patch -p1 < /path/to/firmware/patches/upstream-changes.patch
+git clone --recursive https://github.com/cablesquirrel/snapcast-speaker-stake
+cd snapcast-speaker-stake
+.\scripts\setup-firmware.ps1
 ```
 
 Line references are to the **upstream** file. "after L N" means the new lines are inserted after upstream line N. "L N-M" means upstream lines N through M are replaced or changed.
@@ -53,23 +56,25 @@ Line references are to the **upstream** file. "after L N" means the new lines ar
 
 - `components/ota_server/ota_server.c`: identical to upstream. The OTA fix is the stack size in `main/main.c` above, not a change to this file.
 
-## New files
+## New files (`firmware/overlay/`)
 
-- `components/status_led/` (CMakeLists.txt, Kconfig.projbuild, include/status_led.h, status_led.c): single-LED state indicator for the XIAO's onboard LED on GPIO21. States: connecting (fast blink), waiting (slow blink), ready (solid).
-- `sdkconfig.max98357_combo`: full build config for the XIAO + MAX98357A (3 W) flavor. Uses `CONFIG_DAC_MAX98357=y`, `CONFIG_MAX98357_MUTE_PIN=7`, PSRAM octal, Improv WiFi provisioning, and the status LED on GPIO21.
-- `sdkconfig.pcm5102a_ch05d`: full build config for the XIAO + GY-PCM5102A + CH05D (5 W) flavor. Identical to the above except `CONFIG_DAC_PCM5102A=y` and `CONFIG_PCM5102A_MUTE_PIN=7`.
+These files do not exist upstream. `scripts/setup-firmware.ps1` copies them into the submodule.
 
-Build each flavor into its own directory:
+- `overlay/components/status_led/` (CMakeLists.txt, Kconfig.projbuild, include/status_led.h, status_led.c): single-LED state indicator for the XIAO's onboard LED on GPIO21. States: connecting (fast blink), waiting (slow blink), ready (solid).
+- `overlay/sdkconfig.max98357_combo`: full build config for the XIAO + MAX98357A (3 W) flavor. Uses `CONFIG_DAC_MAX98357=y`, `CONFIG_MAX98357_MUTE_PIN=7`, PSRAM octal, Improv WiFi provisioning, and the status LED on GPIO21.
+- `overlay/sdkconfig.pcm5102a_ch05d`: full build config for the XIAO + GY-PCM5102A + CH05D (5 W) flavor. Identical to the above except `CONFIG_DAC_PCM5102A=y` and `CONFIG_PCM5102A_MUTE_PIN=7`.
+
+Build each flavor into its own directory (from `firmware/snapclient`):
 ```
 idf.py -B build -D SDKCONFIG=sdkconfig.max98357_combo build
 idf.py -B build.pcm5102a_ch05d -D SDKCONFIG=sdkconfig.pcm5102a_ch05d build
 ```
 
-## Submodule-level state
+## Submodule state
 
-Git submodules are not included in `git archive`, so they are not in the patch. Their working-tree contents are included in `firmware/` as plain files.
+`firmware/snapclient` and its nested submodules (`flac`, `improv_wifi`, `opus`, `udp_logger`) are upstream at their pinned commits, with no local changes beyond the patch and overlay above. The flac build makefiles that were deleted in an earlier working copy are back, because they are part of upstream's own flac submodule.
 
-- `components/flac/flac`, `components/improv_wifi/Improv-WiFi-Library`, `components/opus/opus`, `components/udp_logger`: no local changes. The flac build makefiles that were accidentally deleted have been restored from the submodule's git history.
+After the patch is applied, `git status` inside `firmware/snapclient` shows the four modified files and the untracked overlay files. This is expected.
 
 ## Not included
 

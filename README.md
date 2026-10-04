@@ -14,9 +14,13 @@ hardware/
   libraries/       Footprint and symbol libraries used by both boards
   v1/              KiCad project and Gerbers, original 3 W design (MAX98357A)
   v2.0.1/          KiCad project and Gerbers, 5 W design (GY-PCM5102A + CH05D)
-firmware/          Firmware source, unmodified except as listed in CHANGES.md
+firmware/
+  snapclient/      Upstream firmware (submodule, pinned to 5cda3a7)
+  patches/         upstream-changes.patch: our changes to four upstream files
+  overlay/         New files we add (status_led component, speaker-stake sdkconfigs)
   CHANGES.md       Every file and line changed from upstream, with rationale
-  patches/         upstream-changes.patch: the same changes as a unified diff
+scripts/
+  setup-firmware.ps1  Applies the patch and overlay to firmware/snapclient
 releases/
   max98357_combo/  Prebuilt flash images for the 3 W flavor
   pcm5102a_ch05d/  Prebuilt flash images for the 5 W flavor
@@ -84,10 +88,20 @@ When `idf.py --version` works, continue to **Build from source** below.
 
 ## 📚 Build from source
 
-Requires ESP-IDF 5.5.1 (see above). Build each flavor into its own directory:
+First, clone the repo with its submodules and prepare the firmware. This only needs to be done once per clone:
+
+```powershell
+git clone --recursive https://github.com/cablesquirrel/snapcast-speaker-stake
+cd snapcast-speaker-stake
+.\scripts\setup-firmware.ps1
+```
+
+The script checks out upstream at the pinned commit, applies `firmware/patches/upstream-changes.patch`, and copies in the overlay files. It is safe to run again.
+
+Requires ESP-IDF 5.5.1 (see above). Build each flavor from `firmware/snapclient` into its own directory:
 
 ```
-cd firmware
+cd firmware\snapclient
 idf.py -B build -D SDKCONFIG=sdkconfig.max98357_combo build
 idf.py -B build.pcm5102a_ch05d -D SDKCONFIG=sdkconfig.pcm5102a_ch05d build
 ```
@@ -115,5 +129,5 @@ WiFi credentials are not compiled in. Provision them over USB-C with Improv WiFi
 ## ⚖ Licensing
 
 - **Hardware** (`hardware/`): [CERN-OHL-S-2.0](hardware/LICENSE), the strongly reciprocal open-source hardware license. The GY-PCM5102A footprint in this project derives from a CERN-OHL-S library, and that license requires derivatives to stay under the same terms.
-- **Firmware** (`firmware/`): derived from [CarlosDerSeher/snapclient](https://github.com/CarlosDerSeher/snapclient). Its LICENSE and README are in `firmware/` unchanged. Our changes are listed in `firmware/CHANGES.md`.
+- **Firmware** (`firmware/`): upstream [CarlosDerSeher/snapclient](https://github.com/CarlosDerSeher/snapclient) is pulled in as a submodule under GPL-3.0 (see `firmware/snapclient/LICENSE`). Our changes are listed in `firmware/CHANGES.md`. Because they modify GPL-3.0 code, they are also GPL-3.0. The firmware overlay files (`status_led` and the sdkconfigs) are included in that same GPL-3.0 grant.
 - **Third-party libraries**: the Adafruit MAX98357A library (`adafruit-MAX98357.*`) comes from [besi/kicad-adafruit-MAX98357](https://github.com/besi/kicad-adafruit-MAX98357), and the Seeed XIAO library (`Seeed_Studio_XIAO_Series.*`) comes from Seeed Studio. The Seeed library is CC-BY-SA-4.0 (see `hardware/libraries/LICENSES/`). The Adafruit library has no declared license upstream and is included as-is, pending a takedown request if the owner objects. See `hardware/libraries/README.md`.
