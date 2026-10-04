@@ -24,11 +24,6 @@ Line references are to the **upstream** file. "after L N" means the new lines ar
 - after L142, `got_ip_event_handler()` (4 lines): `status_led_set_state(STATUS_LED_STATE_WAITING)`, with a comment.
 - after L162, `lost_ip_event_handler()` (2 lines): `status_led_set_state(STATUS_LED_STATE_CONNECTING)`.
 
-### `components/ota_server/ota_server.c`
-- after L187 (10 lines), in `ota_server_start_my()` before the receive loop: a `loop_iterations` counter with a comment, and the define `OTA_WATCHDOG_YIELD_EVERY_N_LOOPS 16`.
-- after L191 (4 lines): `if ((++loop_iterations % OTA_WATCHDOG_YIELD_EVERY_N_LOOPS) == 0) { vTaskDelay(1); }`.
-  - **Not the fix.** This was added on a wrong hypothesis (task-watchdog starvation). It is harmless, and it was left in because removing it does not change behavior. The real fix is the stack size change in `main/main.c`.
-
 ### `main/CMakeLists.txt`
 - L5: added `status_led` to `PRIV_REQUIRES`.
 
@@ -54,6 +49,10 @@ Line references are to the **upstream** file. "after L N" means the new lines ar
 - L1547 (changed, +7 lines), in `app_main()`, OTA task creation: stack size changed from `14 * 256` (3584 bytes) to `8 * 1024` (8192 bytes), with a comment.
   - **Fixes** OTA. The receive task overflowed its stack during transfers (confirmed from a crash log: "stack overflow in task ota").
 
+## Unchanged from upstream
+
+- `components/ota_server/ota_server.c`: identical to upstream. The OTA fix is the stack size in `main/main.c` above, not a change to this file.
+
 ## New files
 
 - `components/status_led/` (CMakeLists.txt, Kconfig.projbuild, include/status_led.h, status_led.c): single-LED state indicator for the XIAO's onboard LED on GPIO21. States: connecting (fast blink), waiting (slow blink), ready (solid).
@@ -66,12 +65,11 @@ idf.py -B build -D SDKCONFIG=sdkconfig.max98357_combo build
 idf.py -B build.pcm5102a_ch05d -D SDKCONFIG=sdkconfig.pcm5102a_ch05d build
 ```
 
-## Submodule-level changes (not in the patch)
+## Submodule-level state
 
-Git submodules are not included in `git archive`, so these are documented here:
+Git submodules are not included in `git archive`, so they are not in the patch. Their working-tree contents are included in `firmware/` as plain files.
 
-- `components/flac/flac`: five build makefiles are deleted in the working copy: `build/Makefile.am`, `build/compile.mk`, `build/config.mk`, `build/exe.mk`, `build/lib.mk`. The ESP-IDF build does not use them. The deletions were unintentional and were not restored, so the vendored copy differs from upstream here.
-- `components/improv_wifi/Improv-WiFi-Library`, `components/opus/opus`, `components/udp_logger`: no local changes.
+- `components/flac/flac`, `components/improv_wifi/Improv-WiFi-Library`, `components/opus/opus`, `components/udp_logger`: no local changes. The flac build makefiles that were accidentally deleted have been restored from the submodule's git history.
 
 ## Not included
 

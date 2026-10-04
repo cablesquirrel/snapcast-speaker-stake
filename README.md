@@ -6,6 +6,8 @@ Hardware and firmware for the outdoor Snapcast speaker stakes: an ESP32-S3 (Seee
 
 ```
 hardware/
+  LICENSE          CERN-OHL-S-2.0
+  libraries/       Footprint and symbol libraries used by both boards
   v1/              KiCad project and Gerbers, original 3 W design (MAX98357A)
   v2.0.1/          KiCad project and Gerbers, 5 W design (GY-PCM5102A + CH05D)
 firmware/          Firmware source, unmodified except as listed in CHANGES.md
@@ -62,10 +64,12 @@ WiFi credentials are not compiled in. Provision them over USB-C with Improv WiFi
 
 ## Hardware notes
 
-- Both PCB projects reference custom footprint and symbol libraries (XIAO ESP32-S3, GY-PCM5102A, CH05D) by absolute path under `C:/Users/Eric/Documents/KiCad/10.0/`. These libraries are not in this repo yet. The projects will not open cleanly without them.
+- Footprint and symbol libraries used by the boards are in `hardware/libraries/`. Each project's `fp-lib-table` and `sym-lib-table` reference them with `${KIPRJMOD}/../libraries/`, so the projects open from a fresh clone. Add the libraries to your global KiCad tables only if you need them outside these projects.
+- `hardware/libraries/` contains the Seeed XIAO series, GY-PCM5102A, CH05D (provisional, see its KNOWN_ISSUES), and Adafruit MAX98357A libraries as copied from the local KiCad setup.
 - The V2.0.1 known issues are listed in `hardware/v2.0.1/KNOWN_ISSUES.md`. That board was sent to fab with them.
 
-## Attribution and licensing
+## Licensing
 
-- `firmware/` is derived from [CarlosDerSeher/snapclient](https://github.com/CarlosDerSeher/snapclient). Its LICENSE and README are in `firmware/` unchanged.
-- Hardware license: not yet chosen.
+- **Hardware** (`hardware/`): [CERN-OHL-S-2.0](hardware/LICENSE), the strongly reciprocal open-source hardware license. The GY-PCM5102A footprint in this project derives from a CERN-OHL-S library, and that license requires derivatives to stay under the same terms.
+- **Firmware** (`firmware/`): derived from [CarlosDerSeher/snapclient](https://github.com/CarlosDerSeher/snapclient). Its LICENSE and README are in `firmware/` unchanged. Our changes are listed in `firmware/CHANGES.md`.
+- **Third-party libraries**: the Adafruit MAX98357A library (`adafruit-MAX98357.*`) comes from [besi/kicad-adafruit-MAX98357](https://github.com/besi/kicad-adafruit-MAX98357), and the Seeed XIAO library (`Seeed_Studio_XIAO_Series.*`) comes from Seeed Studio. Neither license was checked before copying. Confirm both allow redistribution before publishing this repo.

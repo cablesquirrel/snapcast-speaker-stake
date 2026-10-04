@@ -1,0 +1,4 @@
+(sym_lib_table
+	(version 7)
+	(lib (name "Downloaded Symbols") (type "KiCad") (uri "${KIPRJMOD}/../libraries/symbols") (options "") (descr "Symbol libraries used by the board projects"))
+)

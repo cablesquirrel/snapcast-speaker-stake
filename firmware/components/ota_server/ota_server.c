@@ -185,23 +185,9 @@ void ota_server_start_my(void) {
 
   esp_ota_handle_t ota_handle;
 
-  // At OTA_BUFF_SIZE=1024, a ~1.3MB image is well over a thousand loop
-  // iterations of recv()+esp_ota_write() with no yield anywhere in between.
-  // That's long enough to starve the idle task past the default 5s task
-  // watchdog timeout, which resets the board mid-transfer -- observed as a
-  // reproducible stall/connection-reset at a fixed byte count (not network
-  // packet loss). Yielding periodically keeps the watchdog fed without
-  // adding meaningful total transfer time.
-  int loop_iterations = 0;
-  #define OTA_WATCHDOG_YIELD_EVERY_N_LOOPS 16
-
   do {
     //	  ESP_LOGW (TAG, "stack free: %d",
     // uxTaskGetStackHighWaterMark(NULL));
-
-    if ((++loop_iterations % OTA_WATCHDOG_YIELD_EVERY_N_LOOPS) == 0) {
-      vTaskDelay(1);
-    }
 
     recv_len = recv(connect_socket, ota_buff, OTA_BUFF_SIZE, 0);
 
