@@ -1,8 +1,10 @@
-# Snapcast speaker stake
+# Snapcast Speaker Stake
+
+Hardware and firmware design to retrofit the [Hampton Bay B0029RA](https://www.homedepot.com/p/Hampton-Bay-16-9-in-Black-Outdoor-Landscape-Speaker-B0029RA-2/305754399) outdoor Bluetooth speaker into a [Snapcast](https://github.com/snapcast/snapcast) client.
+
+The design uses an [ESP32-S3 (Seeed XIAO)](https://www.seeedstudio.com/XIAO-ESP32S3-p-5627.html) along with a [I2S DAC](https://www.amazon.com/dp/B08YNJGSN4) and [5-watt amplifier](https://www.amazon.com/dp/B0F6YBYMWY).
 
 ![Cover Photo](./images/cover_photo.jpg)
-
-Hardware and firmware for the outdoor Snapcast speaker stakes: an ESP32-S3 (Seeed XIAO) client that streams from snapserver to a DAC and amplifier.
 
 ## 📁 Repo Layout
 
