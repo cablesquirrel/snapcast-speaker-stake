@@ -44,9 +44,47 @@ python -m esptool --chip esp32s3 -p COMx write_flash \
 
 Replace `COMx` with the board's port. Run this from inside the release folder.
 
+## 🛠 Set up ESP-IDF (Windows)
+
+The firmware builds with ESP-IDF **v5.5.1**. Other versions are untested.
+
+1. **Install Git for Windows** from https://git-scm.com/download/win if you don't have it.
+
+2. **Clone ESP-IDF v5.5.1 with submodules.** This takes a while. In PowerShell:
+   ```powershell
+   mkdir C:\Espressif
+   cd C:\Espressif
+   git clone -b v5.5.1 --recursive https://github.com/espressif/esp-idf.git
+   ```
+
+3. **Install the toolchain for the ESP32-S3:**
+   ```powershell
+   cd C:\Espressif\esp-idf
+   .\install.ps1 esp32s3
+   ```
+   This downloads the Xtensa compiler, CMake, Ninja, and a Python virtual environment. By default they go under `%USERPROFILE%\.espressif`. To put them elsewhere, set `IDF_TOOLS_PATH` before running the script, for example `$env:IDF_TOOLS_PATH = "C:\Espressif\tools"`.
+
+   If PowerShell blocks the script, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once and try again.
+
+4. **Activate the environment in every new terminal.** From the `esp-idf` folder:
+   ```powershell
+   .\export.ps1
+   ```
+   If you set `IDF_TOOLS_PATH` in step 3, set it again in the terminal first.
+
+5. **Check the install:**
+   ```powershell
+   idf.py --version
+   ```
+   It should print `ESP-IDF v5.5.1`.
+
+6. **Connect the board.** The XIAO ESP32-S3 uses its built-in USB-C port, so no USB-serial driver is needed. If no COM port appears, try a different cable. Some cables only charge and don't carry data.
+
+When `idf.py --version` works, continue to **Build from source** below.
+
 ## 📚 Build from source
 
-Requires ESP-IDF 5.5.1. Build each flavor into its own directory:
+Requires ESP-IDF 5.5.1 (see above). Build each flavor into its own directory:
 
 ```
 cd firmware
@@ -78,4 +116,4 @@ WiFi credentials are not compiled in. Provision them over USB-C with Improv WiFi
 
 - **Hardware** (`hardware/`): [CERN-OHL-S-2.0](hardware/LICENSE), the strongly reciprocal open-source hardware license. The GY-PCM5102A footprint in this project derives from a CERN-OHL-S library, and that license requires derivatives to stay under the same terms.
 - **Firmware** (`firmware/`): derived from [CarlosDerSeher/snapclient](https://github.com/CarlosDerSeher/snapclient). Its LICENSE and README are in `firmware/` unchanged. Our changes are listed in `firmware/CHANGES.md`.
-- **Third-party libraries**: the Adafruit MAX98357A library (`adafruit-MAX98357.*`) comes from [besi/kicad-adafruit-MAX98357](https://github.com/besi/kicad-adafruit-MAX98357), and the Seeed XIAO library (`Seeed_Studio_XIAO_Series.*`) comes from Seeed Studio. Neither license was checked before copying. Confirm both allow redistribution before publishing this repo.
+- **Third-party libraries**: the Adafruit MAX98357A library (`adafruit-MAX98357.*`) comes from [besi/kicad-adafruit-MAX98357](https://github.com/besi/kicad-adafruit-MAX98357), and the Seeed XIAO library (`Seeed_Studio_XIAO_Series.*`) comes from Seeed Studio. The Seeed library is CC-BY-SA-4.0 (see `hardware/libraries/LICENSES/`). The Adafruit library has no declared license upstream and is included as-is, pending a takedown request if the owner objects. See `hardware/libraries/README.md`.
