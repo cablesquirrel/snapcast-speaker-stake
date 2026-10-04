@@ -1,0 +1,4 @@
+(fp_lib_table
+	(version 7)
+	(lib (name "GY-PCM5102A") (type "KiCad") (uri "C:/Users/Eric/Documents/KiCad/10.0/footprints/GY-PCM5102A.pretty") (options "") (descr ""))
+)

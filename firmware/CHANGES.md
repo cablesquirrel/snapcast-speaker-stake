@@ -1,0 +1,79 @@
+# Changes from upstream
+
+Upstream: https://github.com/CarlosDerSeher/snapclient at commit `5cda3a7` (branch `develop`, merge commit "Merge branch 'develop'").
+
+Everything listed here is also in `patches/upstream-changes.patch`, which applies cleanly to a pristine checkout of that commit:
+
+```
+git archive 5cda3a7 | tar -x -C snapclient-upstream
+cd snapclient-upstream && patch -p1 < /path/to/firmware/patches/upstream-changes.patch
+```
+
+Line references are to the **upstream** file. "after L N" means the new lines are inserted after upstream line N. "L N-M" means upstream lines N through M are replaced or changed.
+
+## Modified files
+
+### `components/network_interface/CMakeLists.txt`
+- L3: added `status_led` to `PRIV_REQUIRES`.
+
+### `components/network_interface/wifi_interface.c`
+- after L23: `#include "status_led.h"` (1 line).
+- after L89, `event_handler()`, `WIFI_EVENT_STA_DISCONNECTED` (3 lines):
+  - `ESP_LOGI(TAG, "DEBUG: WiFi disconnected, reason: %d", ...)`. **Temporary debug log, left in place.** Upstream logs this at `ESP_LOGV`, which is hidden at the default log level.
+  - `status_led_set_state(STATUS_LED_STATE_CONNECTING)`.
+- after L142, `got_ip_event_handler()` (4 lines): `status_led_set_state(STATUS_LED_STATE_WAITING)`, with a comment.
+- after L162, `lost_ip_event_handler()` (2 lines): `status_led_set_state(STATUS_LED_STATE_CONNECTING)`.
+
+### `components/ota_server/ota_server.c`
+- after L187 (10 lines), in `ota_server_start_my()` before the receive loop: a `loop_iterations` counter with a comment, and the define `OTA_WATCHDOG_YIELD_EVERY_N_LOOPS 16`.
+- after L191 (4 lines): `if ((++loop_iterations % OTA_WATCHDOG_YIELD_EVERY_N_LOOPS) == 0) { vTaskDelay(1); }`.
+  - **Not the fix.** This was added on a wrong hypothesis (task-watchdog starvation). It is harmless, and it was left in because removing it does not change behavior. The real fix is the stack size change in `main/main.c`.
+
+### `main/CMakeLists.txt`
+- L5: added `status_led` to `PRIV_REQUIRES`.
+
+### `main/main.c`
+- after L36: `#include "esp_app_desc.h"` (1 line).
+- after L60: `#include "status_led.h"` (1 line).
+- L552 (1 line changed) and after L558 (14 lines), in `server_settings_msg_received()`:
+  - new parameter `bool *receivedFirstSettings` (L552 signature).
+  - `forceApply` logic: on the first settings message of each connection, mute and volume are applied unconditionally. Otherwise they are applied only on change, as upstream does.
+  - **Fixes** an intermittent bug where the volume slider appeared to do nothing after reconnects.
+- L561 and L572 (changed): mute and volume conditions now include `forceApply ||`.
+- after L812, after L908, after L971: `status_led_set_state(STATUS_LED_STATE_READY)` after each successful `insert_pcm_chunk()` (OPUS, FLAC, and PCM paths).
+- L1001 (changed): `process_data()` signature gains `bool *receivedFirstSettings`.
+- L1054 (changed, +1 line): `server_settings_msg_received()` call passes `receivedFirstSettings`.
+- L1110 (13 lines added), in `http_get_task()`, before the declarations:
+  - `static char version_string[80]`, filled once from `esp_app_get_description()` (ESP-IDF's git-derived version plus the compile date and time).
+  - `bool receivedFirstSettings = false;`
+- L1119 (changed to 9 lines): upstream declares `snapcastSetting_t scSet;` with no initializer. Now `snapcastSetting_t scSet = {0}; scSet.muted = true;`, so the client starts in the muted state the hardware is actually in. This fixes the amp staying muted when the first server message reports `muted=false`.
+- after L1135 (1 line), in the connection housekeeping block at the top of the loop: `receivedFirstSettings = false;`, so each new connection gets its own first-message apply.
+- L1218 (changed): `hello_message.version = version_string;` replaces `(char *)VERSION_STRING`. Upstream sends a static string.
+- L1299 (changed): `process_data(...)` call passes `&receivedFirstSettings`.
+- after L1372 (2 lines), in `app_main()`: `status_led_init();` and a comment.
+- L1547 (changed, +7 lines), in `app_main()`, OTA task creation: stack size changed from `14 * 256` (3584 bytes) to `8 * 1024` (8192 bytes), with a comment.
+  - **Fixes** OTA. The receive task overflowed its stack during transfers (confirmed from a crash log: "stack overflow in task ota").
+
+## New files
+
+- `components/status_led/` (CMakeLists.txt, Kconfig.projbuild, include/status_led.h, status_led.c): single-LED state indicator for the XIAO's onboard LED on GPIO21. States: connecting (fast blink), waiting (slow blink), ready (solid).
+- `sdkconfig.max98357_combo`: full build config for the XIAO + MAX98357A (3 W) flavor. Uses `CONFIG_DAC_MAX98357=y`, `CONFIG_MAX98357_MUTE_PIN=7`, PSRAM octal, Improv WiFi provisioning, and the status LED on GPIO21.
+- `sdkconfig.pcm5102a_ch05d`: full build config for the XIAO + GY-PCM5102A + CH05D (5 W) flavor. Identical to the above except `CONFIG_DAC_PCM5102A=y` and `CONFIG_PCM5102A_MUTE_PIN=7`.
+
+Build each flavor into its own directory:
+```
+idf.py -B build -D SDKCONFIG=sdkconfig.max98357_combo build
+idf.py -B build.pcm5102a_ch05d -D SDKCONFIG=sdkconfig.pcm5102a_ch05d build
+```
+
+## Submodule-level changes (not in the patch)
+
+Git submodules are not included in `git archive`, so these are documented here:
+
+- `components/flac/flac`: five build makefiles are deleted in the working copy: `build/Makefile.am`, `build/compile.mk`, `build/config.mk`, `build/exe.mk`, `build/lib.mk`. The ESP-IDF build does not use them. The deletions were unintentional and were not restored, so the vendored copy differs from upstream here.
+- `components/improv_wifi/Improv-WiFi-Library`, `components/opus/opus`, `components/udp_logger`: no local changes.
+
+## Not included
+
+- The local `sdkconfig` (generated and git-ignored). The two named variants above are the committed configs.
+- WiFi credentials. These are provisioned at runtime via Improv WiFi.
