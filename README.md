@@ -30,9 +30,9 @@ releases/
 
 | Flavor | Hardware | Config | Release |
 |---|---|---|---|
-| 3 W combo | XIAO + MAX98357A | `firmware/sdkconfig.max98357_combo` | `releases/max98357_combo/` |
+| 3 W combo | XIAO + MAX98357A | `firmware/overlay/sdkconfig.max98357_combo` | `releases/max98357_combo/` |
 | ![v1 image](./images/v1.png) | | | |
-| 5 W separate | XIAO + GY-PCM5102A + CH05D | `firmware/sdkconfig.pcm5102a_ch05d` | `releases/pcm5102a_ch05d/` |
+| 5 W separate | XIAO + GY-PCM5102A + CH05D | `firmware/overlay/sdkconfig.pcm5102a_ch05d` | `releases/pcm5102a_ch05d/` |
 | ![v2 image](./images/v2.png) | | | |
 
 Both flavors are built from the same source tree. They differ only in DAC configuration. See `firmware/CHANGES.md` for the full list of changes from upstream.
